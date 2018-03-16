@@ -9,9 +9,10 @@
 import React, { Component } from 'react'
 
 import TextField from 'material-ui/TextField'
+import FlatButton from 'material-ui/FlatButton'
+import ContentAddIcon from 'material-ui/svg-icons/content/add'
 
 import SavedIcon from '../SavedIcon.jsx'
-import { RANGE_REGEX } from '../../../utils'
 import debounce from '../../debounce'
 
 const DebouncedTextField = debounce(TextField)
@@ -19,50 +20,82 @@ const DebouncedTextField = debounce(TextField)
 export default class NumberSubDialog extends Component {
   constructor (...args) {
     super(...args)
-    this.state = { value: false, error: false }
+    this.state = { ranges: [ ['', ''] ] }
   }
 
-  validateNumber = (str) => {
-    try {
-      const ranges = str.split(',')
-      return ranges.reduce((res, range) => {
-        if (res) return res
-        return !RANGE_REGEX.test(range)
-      }, false)
-    } catch (err) {
-      return 'invalid format'
-    }
+  addRange = () => {
+    const { ranges } = this.state
+    return [ ...ranges, ['', ''] ]
+  }
+
+  getMinMax = (index) => {
+    const { ranges } = this.state
+    const [ min, max ] = index >= ranges.length
+      ? [ '', '' ]
+      : ranges[index]
+    return [ min, max ]
+  }
+
+  updateRangeMin = (index) => (e) => {
+    const { value } = e && e.target
+    const { ranges } = this.state
+    const [ min, max ] = this.getMinMax(index)
+    this.setState({ ranges: ranges.map((range, i) => {
+      if (i === index) {
+        return [ value, max ]
+      }
+      return range
+    }) })
+  }
+
+  updateRangeMax = (index) => (e) => {
+    const { value } = e && e.target
+    const { ranges } = this.state
+    const [ min, max ] = this.getMinMax(index)
+    this.setState({ ranges: ranges.map((range, i) => {
+      if (i === index) {
+        return [ min, value ]
+      }
+      return range
+    }) })
+  }
+
+  renderRangeField = (index) => {
+    const [ min, max ] = this.getMinMax(index)
+    return (
+      <span key={index}>
+        <TextField
+          style={{ width: 32, marginRight: 8 }}
+          floatingLabelText="min"
+          value={min}
+          onChange={this.updateRangeMin(index)}
+        />
+        {' - '}
+        <TextField
+          style={{ width: 32, marginLeft: 8 }}
+          floatingLabelText="max"
+          value={max}
+          onChange={this.updateRangeMax(index)}
+        />
+      </span>
+    )
   }
 
   render () {
     const { value, saved, onChange } = this.props
-    const val = this.state.value === false ? value : this.state.value
+    const { ranges } = this.state
 
     return (
-        <div style={{ display: 'block', marginTop: 8 }}>
-            <DebouncedTextField
-              floatingLabelText="range"
-              floatingLabelFixed={true}
-              hintText="e.g. 1-10 or -1-4,6-10"
-              value={val}
-              errorText={this.state.error}
-              onChange={value => this.setState({ value })}
-              onDebounced={currentValue => {
-                const validationError = this.validateNumber(currentValue)
-                if (validationError) {
-                  return this.setState({ error: validationError })
-                } else {
-                  this.setState({ error: false })
-                }
-                onChange(currentValue)
-              }}
-            />
-            <SavedIcon saved={saved} />
-            <p>
-              should be formatted like this: <code>from-to</code>,
-              multiple ranges are separated by a comma
-            </p>
-        </div>
+      <div style={{ display: 'block' }}>
+        {ranges.map((_, i) => this.renderRangeField(i))}
+        <FlatButton
+          label="new range"
+          icon={<ContentAddIcon />}
+          primary
+          style={{ marginLeft: 16 }}
+          onClick={this.addRange}
+        />
+      </div>
     )
   }
 }
