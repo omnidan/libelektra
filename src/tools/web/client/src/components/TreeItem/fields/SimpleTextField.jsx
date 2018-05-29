@@ -29,7 +29,7 @@ export default class SimpleTextField extends Component {
   }
 
   render () {
-    const { id, meta, label, debounce = true, onChange, onError } = this.props
+    const { id, inputRef, meta, label, debounce = true, onChange, onError } = this.props
     const val = this.state.value
     const comp = debounce ? DebouncedTextField : TextField
     const isBinary = meta && meta.hasOwnProperty('binary')
@@ -38,6 +38,8 @@ export default class SimpleTextField extends Component {
       <div draggable="true" onDragStart={e => e.preventDefault()}>
         {React.createElement(comp, {
           id,
+          inputRef: !debounce && inputRef,
+          inputRefRef: debounce && inputRef,
           value: val || (isBinary ? '(null)' : ''),
           tabIndex: 0,
           className: 'value',

@@ -129,7 +129,7 @@ export default class TreeItem extends Component {
 
     // fallback
     return (
-      <SimpleTextField debounce={debounce} label={label} id={id} value={val} meta={meta} onError={onError} onChange={onChange || this.handleEdit} onKeyPress={onKeyPress} />
+      <SimpleTextField inputRef={tf => this.textField = tf} debounce={debounce} label={label} id={id} value={val} meta={meta} onError={onError} onChange={onChange || this.handleEdit} onKeyPress={onKeyPress} />
     )
   }
 
@@ -212,8 +212,16 @@ export default class TreeItem extends Component {
             <span className="actions">
                 <SavedIcon saved={this.state.saved} />
                 {valueVisible &&
-                  <CopyToClipboard text={(data && data.value) || ''} onCopy={() => sendNotification('Copied value of ' + item.path + ' to clipboard!')}>
-                    <ActionButton icon={<ContentPaste />} tooltip="copy value" />
+                  <CopyToClipboard
+                    text={(data && data.value) || ''}
+                    onCopy={() => {
+                      if (this.textField) {
+                        console.log(this.textField)
+                        if (this.textField.select) this.textField.select()
+                      }
+                      sendNotification('Copied value of ' + item.path + ' to clipboard!')
+                    }}>
+                      <ActionButton icon={<ContentPaste />} tooltip="copy value" />
                   </CopyToClipboard>
                 }
                 <ActionButton icon={<ContentAdd />} onClick={this.handleOpen('add')} tooltip="create sub-key" />

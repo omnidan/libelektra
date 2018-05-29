@@ -36,11 +36,11 @@ export default function debounce (WrappedComponent, {
 
     render () {
       // do not pass onDebounced down to the wrapped component
-      const { inputRef, onDebounced, ...originalProps } = this.props
+      const { inputRef, inputRefRef, onDebounced, ...originalProps } = this.props
       const injectedProps = {
         [handlerFn]: this.handleChange,
       }
-      return <WrappedComponent {...originalProps} {...injectedProps} ref={inputRef} />
+      return <WrappedComponent {...originalProps} {...injectedProps} inputRef={inputRefRef} ref={inputRef} />
     }
   }
 }
